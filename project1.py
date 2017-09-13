@@ -26,7 +26,7 @@ class ImageBrowser(QWidget):
 		(self.fullW, self.fullH, self.fullB) = [720, 540, 20]		
 		self.files = files
 		self.images = []
-		(self.label1,self.label2,self.label3,self.label4,self.label5) = [QLabel(self),QLabel(self),QLabel(self),QLabel(self),QLabel(self)]
+		self.labels = [QLabel(self),QLabel(self),QLabel(self),QLabel(self),QLabel(self),QLabel(self)]
 
 		self.initUI()		
  
@@ -35,7 +35,7 @@ class ImageBrowser(QWidget):
 		self.setWindowTitle(self.title)
 		self.setGeometry(0, 0, self.width, self.height)
 		self.initImages(self.files)
-		self.draw(mode=0, index=0) # thumb mode & 1st image
+		self.draw(1, 14) # thumb mode & 1st image
 		self.show()
 
 	def initImages(self, files):
@@ -47,8 +47,6 @@ class ImageBrowser(QWidget):
 			thumbs.append(thumb)
 			fulls.append(full)
 
-		# self.images.append(cycle(thumbs))
-		# self.images.append(cycle(fulls))
 		self.images.append(thumbs)
 		self.images.append(fulls)
 		# self.images[0] = cycle(self.images[0])
@@ -56,51 +54,38 @@ class ImageBrowser(QWidget):
 
 	def resizeAndFrame(self, filename, w, h, b):		
 		pixmap = QPixmap(filename)
-		# scale image to width or height based on image orientation
-		pixmap = pixmap.scaledToWidth(w - 2*b).scaledToHeight(h - 2*b)
-
-		# if pixmap.width() > pixmap.height():
-		# 	pixmap = pixmap.scaledToWidth(w - 2*b)
-		# 	pixmap = pixmap.scaledToHeight(h - 2*b)
-		# 	# setAlignment(Qt::Alignment)
-		# else:
-		# 	pixmap = pixmap.scaledToHeight(h - 2*b)
-		# 	# setAlignment(Qt::Alignment)
+		# scale image to width or height based on image orientation	
+		if pixmap.width() > pixmap.height():
+			pixmap = pixmap.scaledToWidth(w - 2*b)
+			if pixmap.height() > (h - 2*b):
+				pixmap = pixmap.scaledToHeight(h - 2*b)
+		else:
+			pixmap = pixmap.scaledToHeight(h - 2*b)
 
 		return pixmap
 
-	def draw(self, mode, index):
+	def draw(self, mode, LIndex, selected = -1):
+		if selected == -1:
+			selected = LIndex
+		
 		if mode == 0:
 			y = 100
-			self.label1.setPixmap(self.images[0][index])
-			self.label1.setAlignment(Qt.AlignCenter) # 40+0*self.thumbW
-			self.label1.setGeometry(QRect(40+0*self.thumbW, y, self.thumbW, self.thumbH))
-			self.label1.setStyleSheet('border: ' + str(self.thumbB) + 'px solid green')
-			
-			self.label2.setPixmap(self.images[0][index+1])
-			self.label2.setAlignment(Qt.AlignCenter) # 40+0*self.thumbW
-			self.label2.setGeometry(QRect(40+1*self.thumbW, y, self.thumbW, self.thumbH))
-			self.label2.setStyleSheet('border: ' + str(self.thumbB) + 'px solid green')
-			
-			self.label3.setPixmap(self.images[0][index+2])
-			self.label3.setAlignment(Qt.AlignCenter) # 40+0*self.thumbW
-			self.label3.setGeometry(QRect(40+2*self.thumbW, y, self.thumbW, self.thumbH))
-			self.label3.setStyleSheet('border: ' + str(self.thumbB) + 'px solid green')
-			
-			self.label4.setPixmap(self.images[0][index+3])
-			self.label4.setAlignment(Qt.AlignCenter) # 40+0*self.thumbW
-			self.label4.setGeometry(QRect(40+3*self.thumbW, y, self.thumbW, self.thumbH))
-			self.label4.setStyleSheet('border: ' + str(self.thumbB) + 'px solid green')
-			
-			self.label5.setPixmap(self.images[0][index+4])
-			self.label5.setAlignment(Qt.AlignCenter) # 40+0*self.thumbW
-			self.label5.setGeometry(QRect(40+4*self.thumbW, y, self.thumbW, self.thumbH))
-			self.label5.setStyleSheet('border: ' + str(self.thumbB) + 'px solid green')
-
+			for i in range(5):			
+				thumb = LIndex+i if (LIndex+i < len(self.files)) else abs(len(self.files) - LIndex-i)
+				color = 'green'
+				if thumb == selected:
+					color = 'red'					
+				self.labels[i].setPixmap(self.images[mode][thumb])
+				self.labels[i].setAlignment(Qt.AlignCenter)
+				self.labels[i].setGeometry(QRect(40+i*self.thumbW, y, self.thumbW, self.thumbH))
+				self.labels[i].setStyleSheet('border: ' + str(self.thumbB) + 'px solid '+ color)
+				
 		elif mode == 1:
-			print('cheese')
-			# self.label.setStyleSheet('border: ' + str(self.thumbB) + 'px solid green')
-			# self.label.setPixmap(self.images[mode][index])
+			y = 30
+			self.labels[5].setPixmap(self.images[mode][selected])
+			self.labels[5].setAlignment(Qt.AlignCenter)
+			self.labels[5].setGeometry(QRect(40, y, self.fullW, self.fullH))
+			self.labels[5].setStyleSheet('border: ' + str(self.fullB) + 'px solid red')
 
 
 
