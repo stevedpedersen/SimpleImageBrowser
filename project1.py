@@ -23,7 +23,8 @@ class ImageBrowser(QWidget):
 		self.title = 'Project 1 - Simple Image Browser'
 		(self.width, self.height) = [800, 600]
 		(self.thumbW, self.thumbH, self.thumbB) = [144, 100, 5]
-		(self.fullW, self.fullH, self.fullB) = [720, 540, 20]		
+		(self.fullW, self.fullH, self.fullB) = [720, 540, 20]	
+		(self.h, self.i, self.j) = [-1, 0, 1]	
 		self.files = files
 		self.images = []
 		self.labels = [QLabel(self),QLabel(self),QLabel(self),QLabel(self),QLabel(self),QLabel(self)]
@@ -35,7 +36,8 @@ class ImageBrowser(QWidget):
 		self.setWindowTitle(self.title)
 		self.setGeometry(0, 0, self.width, self.height)
 		self.initImages(self.files)
-		self.draw(1, 14) # thumb mode & 1st image
+		self.draw(0, 6) # mode & image
+		print(self.h,self.i,self.j)
 		self.show()
 
 	def initImages(self, files):
@@ -67,11 +69,13 @@ class ImageBrowser(QWidget):
 	def draw(self, mode, LIndex, selected = -1):
 		if selected == -1:
 			selected = LIndex
-		
+		self.h = (selected - 1) % len(self.files)
+		self.i = (selected) 	% len(self.files)
+		self.j = (selected + 1) % len(self.files)				
 		if mode == 0:
-			y = 100
-			for i in range(5):			
-				thumb = LIndex+i if (LIndex+i < len(self.files)) else abs(len(self.files) - LIndex-i)
+			y = (self.height - self.thumbH*5) / 2
+			for i in range(5):	
+				thumb = selected+i if (selected+i < len(self.files)) else abs(len(self.files) - selected-i)
 				color = 'green'
 				if thumb == selected:
 					color = 'red'					
@@ -81,7 +85,7 @@ class ImageBrowser(QWidget):
 				self.labels[i].setStyleSheet('border: ' + str(self.thumbB) + 'px solid '+ color)
 				
 		elif mode == 1:
-			y = 30
+			y = (self.height - self.fullH) / 2
 			self.labels[5].setPixmap(self.images[mode][selected])
 			self.labels[5].setAlignment(Qt.AlignCenter)
 			self.labels[5].setGeometry(QRect(40, y, self.fullW, self.fullH))
