@@ -16,15 +16,17 @@ from PyQt5.QtCore import *
 
 
 class ClickableLabel(QLabel):
-	# when QLabel is clicked, emit a signal with a str parameter
-	clicked = pyqtSignal(str)
+	# when QLabel is clicked, emit a signal with an object param
+	clicked = pyqtSignal(object)
 
-	def __init(self, parent):
+	def __init__(self, parent):
 		super().__init__(parent)
+		self.index = 0
+		self.pixIndex = 0
 
 	def mousePressEvent(self, event):
 		# on click sends the object name to mouseSel()
-		self.clicked.emit(self.objectName())
+		self.clicked.emit(self)
 
 class ImageBrowser(QWidget):
  
@@ -35,6 +37,7 @@ class ImageBrowser(QWidget):
 		(self.thumbW, self.thumbH, self.thumbB) = [144, 100, 5]
 		(self.fullW, self.fullH, self.fullB) = [720, 540, 20]	
 		(self.h, self.i, self.j) = [-1, 0, 1]
+		self.l = 0
 		self.mode = 0
 		self.files = files		
 		self.images = []
@@ -48,7 +51,7 @@ class ImageBrowser(QWidget):
 		self.setGeometry(0, 0, self.width, self.height)
 		self.initImages(self.files)
 		# Start off in Thumbnail Mode on the first image
-		self.draw(0, 0) 
+		self.draw(0, 0, 0) 
 		self.show()
 
 	# Populates a 2D List of Pixmaps with Thumbnail & Full versions of all images
@@ -77,39 +80,48 @@ class ImageBrowser(QWidget):
 		return pixmap
 
 	# Attach images to labels in thumbnail or fullscreen mode
-	def draw(self, mode, LIndex, selected = -1):
-		if selected == -1:
-			selected = LIndex
+	def draw(self, mode, selected, l = -1):
+		self.clearBrowser()
+		self.mode = mode
+		
 		self.h = (selected - 1) % len(self.files)
 		self.i = (selected) 	% len(self.files)
 		self.j = (selected + 1) % len(self.files)
-		self.mode = mode
 
 		# Thumbnail Mode
-		if mode == 0:
-			self.clearBrowser()
+		if mode == 0:			
 			y = self.height - self.thumbH * 2 
-			for i in range(5):	
-				thumb = selected+i if (selected+i < len(self.files)) else abs(len(self.files) - selected-i)
+			for i in range(5):
+				# Center the highlighted thumbnail when returning from full screen mode
+				if l > 0:
+					self.l = l
+					thumb = (l + i) % len(self.files)
+				else:
+					thumb = (selected + i) % len(self.files)					
 				color = 'green'
 				if thumb == selected:
-					color = 'red'					
+					color = 'red'	
+
+				self.labels[i].index = i
+				self.labels[i].pixIndex = thumb
 				self.labels[i].setPixmap(self.images[mode][thumb])
 				self.labels[i].setAlignment(Qt.AlignCenter)
 				self.labels[i].setGeometry(QRect(40+i*self.thumbW, y, self.thumbW, self.thumbH))
 				self.labels[i].setStyleSheet('border: ' + str(self.thumbB) + 'px solid '+ color)
-				self.labels[i].setObjectName('Label: {},\tMode: {}'.format(thumb, mode))
+				# self.labels[i].setObjectName('Label: {},\tMode: {}'.format(thumb, mode))
 				self.labels[i].clicked.connect(self.mouseSel)
+				# print(self.labels[i].pixIndex)
 		
 		# Full Screen Mode		
 		elif mode == 1:
-			self.clearBrowser()
 			y = (self.height - self.fullH) / 2
+			self.labels[5].index = 0
+			self.labels[5].pixIndex = selected
 			self.labels[5].setPixmap(self.images[mode][selected])
 			self.labels[5].setAlignment(Qt.AlignCenter)
 			self.labels[5].setGeometry(QRect(40, y, self.fullW, self.fullH))
 			self.labels[5].setStyleSheet('border: ' + str(self.fullB) + 'px solid red')
-			self.labels[5].setObjectName('Label: {},\tMode: {}'.format(selected, mode))
+			# self.labels[5].setObjectName('Label: {},\tMode: {}'.format(selected, mode))
 			self.labels[5].clicked.connect(self.mouseSel)
 	
 	# Handles key events and responds according to current browser state
@@ -118,24 +130,43 @@ class ImageBrowser(QWidget):
 		down = 16777237
 		left = 16777234
 		right = 16777236
-		if (self.mode == 0) and event.key() == up:
-			self.draw(1, self.h-1, self.i)
-		elif (self.mode == 1) and event.key() == down:
-			self.draw(0, self.h-1, self.i)
-		elif (self.mode == 1) and event.key() == left:
-			self.draw(1, self.h-1, self.h)
-		elif (self.mode == 1) and event.key() == right:
-			self.draw(1, self.h-1, self.j)
-		elif (self.mode == 0) and event.key() == left:
-			self.draw(0, self.h, self.h)
-		elif (self.mode == 0) and event.key() == right:
-			self.draw(0, self.h, self.j)
+		scrollL = 44
+		scrollR = 46
 
-	def mouseClickEvent(self, event):
-		print(event)
+		# Enter Full Screen Mode
+		if self.mode == 0 	and event.key() == up:
+			self.draw(1, self.i)
+		# Exit Full Screen Mode			
+		elif self.mode == 1 and event.key() == down:
+			self.draw(0, self.i, (self.i - 2) % len(self.files))
+		# Left - Full Screen
+		elif self.mode == 1 and event.key() == left:
+			self.draw(1, self.h)
+		# Right - Full Screen		
+		elif self.mode == 1 and event.key() == right:
+			self.draw(1, self.j)
+		# Left - Thumbnail
+		elif self.mode == 0 and event.key() == left:	# TODO: Update self.l on move
+			self.draw(0, self.h)
+		# Right - Thumbnail		
+		elif self.mode == 0 and event.key() == right:	# TODO: Update self.l on move
+			self.draw(0, self.j)
+		# Next set Left - Thumbnail		
+		elif self.mode == 0 and event.key() == scrollL:
+			nextIndex = (self.i - 5) % len(self.files)
+			self.draw(0, nextIndex, nextIndex)
+		# Next set Right = Thumbnail		
+		elif self.mode == 0 and event.key() == scrollR:
+			nextIndex = (self.i + 5) % len(self.files)
+			self.draw(0, nextIndex, nextIndex)
 
-	def mouseSel(self, name):
-		print('"%s" clicked' % name)
+
+	def mouseSel(self, label):
+		print(label)
+		# if self.mode == 0:
+		# 	# print('self.l: {},\tlabel.index: {},\tlabel.pixIndex: {},\t{}'.format(self.l, label.index, label.pixIndex, name))
+		# 	# focused = (self.l + label.index) % len(self.files)
+		# 	self.draw(1, label.pixIndex)
 
 	# Hide any visible contents on browser window
 	def clearBrowser(self):
