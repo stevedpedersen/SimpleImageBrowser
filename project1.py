@@ -36,8 +36,9 @@ class ImageBrowser(QWidget):
 		(self.width, self.height) = [800, 600]
 		(self.thumbW, self.thumbH, self.thumbB) = [144, 100, 5]
 		(self.fullW, self.fullH, self.fullB) = [720, 540, 20]	
-		(self.h, self.i, self.j) = [-1, 0, 1]	
-		self.files = files
+		(self.h, self.i, self.j) = [-1, 0, 1]
+		self.mode = 0
+		self.files = files		
 		self.images = []
 		self.labels = [ClickableLabel(self),ClickableLabel(self),ClickableLabel(self),
 			ClickableLabel(self), ClickableLabel(self),ClickableLabel(self)]
@@ -49,7 +50,7 @@ class ImageBrowser(QWidget):
 		self.setWindowTitle(self.title)
 		self.setGeometry(0, 0, self.width, self.height)
 		self.initImages(self.files)
-		self.draw(1, 6) # mode & image
+		self.draw(0, 6) # mode & image
 		print(self.h,self.i,self.j)
 		self.show()
 
@@ -84,8 +85,10 @@ class ImageBrowser(QWidget):
 			selected = LIndex
 		self.h = (selected - 1) % len(self.files)
 		self.i = (selected) 	% len(self.files)
-		self.j = (selected + 1) % len(self.files)				
+		self.j = (selected + 1) % len(self.files)
+		self.mode = mode				
 		if mode == 0:
+			self.clearBrowser()
 			y = (self.height - self.thumbH*5) / 2
 			for i in range(5):	
 				thumb = selected+i if (selected+i < len(self.files)) else abs(len(self.files) - selected-i)
@@ -101,6 +104,7 @@ class ImageBrowser(QWidget):
 
 				
 		elif mode == 1:
+			self.clearBrowser()
 			y = (self.height - self.fullH) / 2
 			self.labels[5].setPixmap(self.images[mode][selected])
 			self.labels[5].setAlignment(Qt.AlignCenter)
@@ -108,9 +112,31 @@ class ImageBrowser(QWidget):
 			self.labels[5].setStyleSheet('border: ' + str(self.fullB) + 'px solid red')
 			self.labels[5].setObjectName('Label: {},\tMode: {}'.format(selected, mode))
 			self.labels[5].clicked.connect(self.mouseSel)
+	
+	def keyPressEvent(self, event):
+		up = 16777235
+		down = 16777237
+		left = 16777234
+		right = 16777236
+		if (self.mode == 0) and event.key() == up:
+			self.draw(1, self.h-1, self.i)
+		elif (self.mode == 1) and event.key() == down:
+			self.draw(0, self.h-1, self.i)
+		elif (self.mode == 1) and event.key() == left:
+			self.draw(1, self.h-1, self.h)
+		elif (self.mode == 1) and event.key() == right:
+			self.draw(1, self.h-1, self.j)
+
+	def mouseClickEvent(self, event):
+		print(event)
 
 	def mouseSel(self, name):
 		print('"%s" clicked' % name)
+
+	def clearBrowser(self):
+		for i in range(6):
+			self.labels[i].setStyleSheet('border: none')
+			self.labels[i].clear()
 
 if __name__ == '__main__':
 	files = os.listdir('data')
