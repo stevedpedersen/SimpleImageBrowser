@@ -1,6 +1,6 @@
 # SimpleImageBrowser
 
-[![N|Solid](https://www.python.org/static/opengraph-icon-200x200.png)](https://nodesource.com/products/nsolid)[![N|Solid](https://avatars0.githubusercontent.com/u/159455?v=4&s=200)](https://nodesource.com/products/nsolid)
+[![N|Solid](https://www.python.org/static/opengraph-icon-200x200.png)](https://www.python.org)[![N|Solid](https://avatars0.githubusercontent.com/u/159455?v=4&s=200)](https://www.riverbankcomputing.com/software/pyqt)
 
 SimpleImageBrowser is a simple GUI that displays images in thumbnail and fullscreen mode. Navigation is down with keys and mouse. **This is a class project written by Steve Pedersen at San Francisco State University CSc 690: Interactive Multimedia Application Development**
 
