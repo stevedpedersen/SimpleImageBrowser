@@ -14,8 +14,20 @@ import os, sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel
 from PyQt5.QtGui import QPixmap
 from itertools import cycle
-from PyQt5.QtCore import Qt, QRect
- 
+from PyQt5.QtCore import *
+
+
+class ClickableLabel(QLabel):
+	# when QLabel is clicked, emit a signal with a str parameter
+	clicked = pyqtSignal(str)
+
+	def __init(self, parent):
+		super().__init__(parent)
+
+	def mousePressEvent(self, event):
+		# on click sends the object name to mouseSel()
+		self.clicked.emit(self.objectName())
+
 class ImageBrowser(QWidget):
  
 	def __init__(self, files):
@@ -27,16 +39,17 @@ class ImageBrowser(QWidget):
 		(self.h, self.i, self.j) = [-1, 0, 1]	
 		self.files = files
 		self.images = []
-		self.labels = [QLabel(self),QLabel(self),QLabel(self),QLabel(self),QLabel(self),QLabel(self)]
+		self.labels = [ClickableLabel(self),ClickableLabel(self),ClickableLabel(self),
+			ClickableLabel(self), ClickableLabel(self),ClickableLabel(self)]
 
 		self.initUI()		
- 
+
 	def initUI(self):
 		# window
 		self.setWindowTitle(self.title)
 		self.setGeometry(0, 0, self.width, self.height)
 		self.initImages(self.files)
-		self.draw(0, 6) # mode & image
+		self.draw(1, 6) # mode & image
 		print(self.h,self.i,self.j)
 		self.show()
 
@@ -83,6 +96,9 @@ class ImageBrowser(QWidget):
 				self.labels[i].setAlignment(Qt.AlignCenter)
 				self.labels[i].setGeometry(QRect(40+i*self.thumbW, y, self.thumbW, self.thumbH))
 				self.labels[i].setStyleSheet('border: ' + str(self.thumbB) + 'px solid '+ color)
+				self.labels[i].setObjectName('Label: {},\tMode: {}'.format(thumb, mode))
+				self.labels[i].clicked.connect(self.mouseSel)
+
 				
 		elif mode == 1:
 			y = (self.height - self.fullH) / 2
@@ -90,8 +106,11 @@ class ImageBrowser(QWidget):
 			self.labels[5].setAlignment(Qt.AlignCenter)
 			self.labels[5].setGeometry(QRect(40, y, self.fullW, self.fullH))
 			self.labels[5].setStyleSheet('border: ' + str(self.fullB) + 'px solid red')
+			self.labels[5].setObjectName('Label: {},\tMode: {}'.format(selected, mode))
+			self.labels[5].clicked.connect(self.mouseSel)
 
-
+	def mouseSel(self, name):
+		print('"%s" clicked' % name)
 
 if __name__ == '__main__':
 	files = os.listdir('data')
