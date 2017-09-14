@@ -21,7 +21,6 @@ class ClickableLabel(QLabel):
 
 	def __init__(self, parent):
 		super().__init__(parent)
-		self.index = 0
 		self.pixIndex = 0
 
 	def mousePressEvent(self, event):
@@ -81,7 +80,8 @@ class ImageBrowser(QWidget):
 
 	# Attach images to labels in thumbnail or fullscreen mode
 	def draw(self, mode, selected, l = -1):
-		self.clearBrowser()
+		if self.mode != mode:
+			self.clearBrowser()
 		self.mode = mode
 		
 		self.h = (selected - 1) % len(self.files)
@@ -89,7 +89,7 @@ class ImageBrowser(QWidget):
 		self.j = (selected + 1) % len(self.files)
 
 		# Thumbnail Mode
-		if mode == 0:			
+		if mode == 0:	
 			y = self.height - self.thumbH * 2 
 			for i in range(5):
 				# Center the highlighted thumbnail when returning from full screen mode
@@ -102,8 +102,9 @@ class ImageBrowser(QWidget):
 				if thumb == selected:
 					color = 'red'	
 
-				self.labels[i].index = i
+				# self.labels[i] = ClickableLabel(self)
 				self.labels[i].pixIndex = thumb
+				self.labels[i].setVisible(True)
 				self.labels[i].setPixmap(self.images[mode][thumb])
 				self.labels[i].setAlignment(Qt.AlignCenter)
 				self.labels[i].setGeometry(QRect(40+i*self.thumbW, y, self.thumbW, self.thumbH))
@@ -115,14 +116,22 @@ class ImageBrowser(QWidget):
 		# Full Screen Mode		
 		elif mode == 1:
 			y = (self.height - self.fullH) / 2
-			self.labels[5].index = 0
+
+			# self.labels[5].clear()
+			# del self.labels[5]
+			# self.labels.append(ClickableLabel(self))
 			self.labels[5].pixIndex = selected
+			self.labels[5].setVisible(True)
 			self.labels[5].setPixmap(self.images[mode][selected])
 			self.labels[5].setAlignment(Qt.AlignCenter)
 			self.labels[5].setGeometry(QRect(40, y, self.fullW, self.fullH))
 			self.labels[5].setStyleSheet('border: ' + str(self.fullB) + 'px solid red')
 			# self.labels[5].setObjectName('Label: {},\tMode: {}'.format(selected, mode))
 			self.labels[5].clicked.connect(self.mouseSel)
+
+	def mouseSel(self, label):
+		if self.mode == 0:
+			self.draw(1, label.pixIndex)
 	
 	# Handles key events and responds according to current browser state
 	def keyPressEvent(self, event):
@@ -155,24 +164,16 @@ class ImageBrowser(QWidget):
 		elif self.mode == 0 and event.key() == scrollL:
 			nextIndex = (self.i - 5) % len(self.files)
 			self.draw(0, nextIndex, nextIndex)
-		# Next set Right = Thumbnail		
+		# Next set Right - Thumbnail		
 		elif self.mode == 0 and event.key() == scrollR:
 			nextIndex = (self.i + 5) % len(self.files)
 			self.draw(0, nextIndex, nextIndex)
-
-
-	def mouseSel(self, label):
-		print(label)
-		# if self.mode == 0:
-		# 	# print('self.l: {},\tlabel.index: {},\tlabel.pixIndex: {},\t{}'.format(self.l, label.index, label.pixIndex, name))
-		# 	# focused = (self.l + label.index) % len(self.files)
-		# 	self.draw(1, label.pixIndex)
 
 	# Hide any visible contents on browser window
 	def clearBrowser(self):
 		for i in range(6):
 			self.labels[i].setStyleSheet('border: none')
-			self.labels[i].clear()
+			self.labels[i].setVisible(False)
 
 # Create an image browser from the images in the 'data' folder
 if __name__ == '__main__':
