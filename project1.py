@@ -1,13 +1,11 @@
 # File: project1.py
 # By: Steve Pedersen
 # Date: September 12, 2017
-# Usage: python3 project1.py <w> <h> <b>
-# 	<w> width, 
-#	<h> height, 
-#	<b> base, 
+# Usage: python3 project1.py 
 # System: OS X
-# Description: Lists files, then resizes, frames and displays an 
-#   image based on user args of Width, Height, Border, Image #
+# Dependencies: Python3, PyQt5
+# Description: Creates an image browser that displays images as 
+# 	thumbnails and fullscreen. Navigation with keys and mouse.
 
 
 import os, sys
