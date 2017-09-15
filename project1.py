@@ -80,7 +80,7 @@ class ImageBrowser(QWidget):
 		return pixmap
 
 	# Attach images to labels in thumbnail or fullscreen mode
-	def draw(self, mode, selected, l = -1):
+	def draw(self, mode, selected, l = -1, transition = 'none'):
 		if self.mode != mode:
 			self.clearBrowser()
 		self.mode = mode
@@ -159,10 +159,10 @@ class ImageBrowser(QWidget):
 		elif self.mode == 1 and event.key() == right:
 			self.draw(1, self.j)
 		# Left - Thumbnail
-		elif self.mode == 0 and event.key() == left:	# TODO: Update self.l on move
+		elif self.mode == 0 and event.key() == left:	# TODO: Update self.l on move, transition
 			self.draw(0, self.h)
 		# Right - Thumbnail		
-		elif self.mode == 0 and event.key() == right:	# TODO: Update self.l on move
+		elif self.mode == 0 and event.key() == right:	# TODO: Update self.l on move, transition
 			self.draw(0, self.j)
 		# Next set Left - Thumbnail		
 		elif self.mode == 0 and event.key() == scrollL:
