@@ -37,6 +37,7 @@ class ImageBrowser(QWidget):
 		(self.fullW, self.fullH, self.fullB) = [720, 540, 20]	
 		(self.h, self.i, self.j) = [-1, 0, 1]
 		self.l = 0
+		self.selectedLabel = 0
 		self.mode = 0
 		self.files = files		
 		self.images = []
@@ -96,8 +97,10 @@ class ImageBrowser(QWidget):
 				if l > 0:
 					self.l = l
 					thumb = (l + i) % len(self.files)
+					self.selectedLabel = i
 				else:
-					thumb = (selected + i) % len(self.files)					
+					thumb = (selected + i) % len(self.files)
+					self.selectedLabel = i					
 				color = 'green'
 				if thumb == selected:
 					color = 'red'	
@@ -120,6 +123,7 @@ class ImageBrowser(QWidget):
 			# self.labels[5].clear()
 			# del self.labels[5]
 			# self.labels.append(ClickableLabel(self))
+			self.selectedLabel = 5
 			self.labels[5].pixIndex = selected
 			self.labels[5].setVisible(True)
 			self.labels[5].setPixmap(self.images[mode][selected])
