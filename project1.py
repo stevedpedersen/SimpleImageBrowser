@@ -22,6 +22,7 @@ class ClickableLabel(QLabel):
 	def __init__(self, parent):
 		super().__init__(parent)
 		self.pixIndex = 0
+		self.labIndex = 0
 
 	def mousePressEvent(self, event):
 		# on click sends the object name to mouseSel()
@@ -93,6 +94,7 @@ class ImageBrowser(QWidget):
 		if mode == 0:	
 			y = self.height - self.thumbH * 2 
 			for i in range(5):
+				x = ((self.width - self.thumbW*5)/2) + i*self.thumbW
 				# Center the highlighted thumbnail when returning from full screen mode
 				if l > 0:
 					self.l = l
@@ -105,33 +107,27 @@ class ImageBrowser(QWidget):
 				if thumb == selected:
 					color = 'red'	
 
-				# self.labels[i] = ClickableLabel(self)
-				self.labels[i].pixIndex = thumb
-				self.labels[i].setVisible(True)
-				self.labels[i].setPixmap(self.images[mode][thumb])
-				self.labels[i].setAlignment(Qt.AlignCenter)
-				self.labels[i].setGeometry(QRect(40+i*self.thumbW, y, self.thumbW, self.thumbH))
-				self.labels[i].setStyleSheet('border: ' + str(self.thumbB) + 'px solid '+ color)
-				# self.labels[i].setObjectName('Label: {},\tMode: {}'.format(thumb, mode))
-				self.labels[i].clicked.connect(self.mouseSel)
-				# print(self.labels[i].pixIndex)
+				self.attachPixmap(thumb, i, x, y, self.thumbW, self.thumbH, self.thumbB, color)
 		
 		# Full Screen Mode		
 		elif mode == 1:
+			x = (self.width - self.fullW) / 2
 			y = (self.height - self.fullH) / 2
+			self.attachPixmap(selected, 5, x, y, self.fullW, self.fullH, self.fullB, 'red')
 
-			# self.labels[5].clear()
-			# del self.labels[5]
-			# self.labels.append(ClickableLabel(self))
-			self.selectedLabel = 5
-			self.labels[5].pixIndex = selected
-			self.labels[5].setVisible(True)
-			self.labels[5].setPixmap(self.images[mode][selected])
-			self.labels[5].setAlignment(Qt.AlignCenter)
-			self.labels[5].setGeometry(QRect(40, y, self.fullW, self.fullH))
-			self.labels[5].setStyleSheet('border: ' + str(self.fullB) + 'px solid red')
-			# self.labels[5].setObjectName('Label: {},\tMode: {}'.format(selected, mode))
-			self.labels[5].clicked.connect(self.mouseSel)
+	def attachPixmap(self, pindex, lindex, x, y, w, h, b, color):
+		mode = 0
+		if lindex == 5:
+			mode = 1
+		self.labels[lindex].pixIndex = pindex
+		self.labels[lindex].labIndex = lindex
+		self.labels[lindex].setVisible(True)
+		self.labels[lindex].setPixmap(self.images[mode][pindex])
+		self.labels[lindex].setAlignment(Qt.AlignCenter)
+		self.labels[lindex].setGeometry(QRect(x, y, w, h))
+		self.labels[lindex].setStyleSheet('border: ' + str(b) + 'px solid '+ color+';')
+		self.labels[lindex].clicked.connect(self.mouseSel)	
+		self.labels[lindex].repaint(QRect(x+5, y, w+5, h))		
 
 	def mouseSel(self, label):
 		if self.mode == 0:
