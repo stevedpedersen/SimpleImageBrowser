@@ -30,28 +30,34 @@ class ClickableLabel(QLabel):
 
 class ImageBrowser(QWidget):
  
-	def __init__(self, files):
+	def __init__(self, files, windowWidth):
 		super().__init__()
 		self.title = 'Project 1 - Simple Image Browser'
-		(self.width, self.height) = [800, 600]
-		(self.thumbW, self.thumbH, self.thumbB) = [144, 100, 5]
-		(self.fullW, self.fullH, self.fullB) = [720, 540, 20]	
-		(self.h, self.i, self.j) = [-1, 0, 1]
-		self.l = 0
-		self.selectedLabel = 0
-		self.mode = 0
-		self.files = files		
-		self.images = []
-		self.labels = [ClickableLabel(self),ClickableLabel(self),ClickableLabel(self),
-			ClickableLabel(self), ClickableLabel(self),ClickableLabel(self)]
+		self.files = files
+		self.setDimensions(windowWidth)
+		self.h, self.i, self.j, self.mode = -1, 0, 1, 0
+		self.images, self.labels = [], []
+		for _ in range(6):
+			self.labels.append(ClickableLabel(self))
 		self.initUI()		
 
+	# Scales everything that is displayed according to window width
+	def setDimensions(self, windowWidth):
+		self.width 	= int(windowWidth)
+		self.height = int(3 * self.width / 4)
+		self.thumbW = int(self.width / 6)
+		self.thumbH = int(3 * self.thumbW / 4)
+		self.thumbB = int(self.width / (self.thumbW * 0.75))
+		self.fullW 	= int(self.width * 0.9)
+		self.fullH	= int(3 * self.fullW / 4)
+		self.fullB	= int(self.width / (self.thumbW * 0.25))
+
+	# Display window in Thumbnail Mode with first image selected
 	def initUI(self):
-		# window
 		self.setWindowTitle(self.title)
 		self.setGeometry(0, 0, self.width, self.height)
+		self.setStyleSheet('background-color: #B5B2C2;')
 		self.initImages(self.files)
-		# Start off in Thumbnail Mode on the first image
 		self.draw(0, 0, 0) 
 		self.show()
 
@@ -81,7 +87,7 @@ class ImageBrowser(QWidget):
 		return pixmap
 
 	# Attach images to labels in thumbnail or fullscreen mode
-	def draw(self, mode, selected, l = -1, transition = 'none'):
+	def draw(self, mode, selected, centered = -1):
 		if self.mode != mode:
 			self.clearBrowser()
 		self.mode = mode
@@ -92,20 +98,17 @@ class ImageBrowser(QWidget):
 
 		# Thumbnail Mode
 		if mode == 0:	
-			y = self.height - self.thumbH * 2 
+			y = self.height - (self.thumbH * 2) 
 			for i in range(5):
 				x = ((self.width - self.thumbW*5)/2) + i*self.thumbW
 				# Center the highlighted thumbnail when returning from full screen mode
-				if l > 0:
-					self.l = l
-					thumb = (l + i) % len(self.files)
-					self.selectedLabel = i
+				if centered > 0:
+					thumb = (centered + i) % len(self.files)
 				else:
-					thumb = (selected + i) % len(self.files)
-					self.selectedLabel = i					
-				color = 'green'
+					thumb = (selected + i) % len(self.files)				
+				color = '#A0C1D1'
 				if thumb == selected:
-					color = 'red'	
+					color = '#5A7D7C'	
 
 				self.attachPixmap(thumb, i, x, y, self.thumbW, self.thumbH, self.thumbB, color)
 		
@@ -113,8 +116,9 @@ class ImageBrowser(QWidget):
 		elif mode == 1:
 			x = (self.width - self.fullW) / 2
 			y = (self.height - self.fullH) / 2
-			self.attachPixmap(selected, 5, x, y, self.fullW, self.fullH, self.fullB, 'red')
+			self.attachPixmap(selected, 5, x, y, self.fullW, self.fullH, self.fullB, '#5A7D7C')
 
+	# Assigns an image to one of the labels
 	def attachPixmap(self, pindex, lindex, x, y, w, h, b, color):
 		mode = 0
 		if lindex == 5:
@@ -127,7 +131,6 @@ class ImageBrowser(QWidget):
 		self.labels[lindex].setGeometry(QRect(x, y, w, h))
 		self.labels[lindex].setStyleSheet('border: ' + str(b) + 'px solid '+ color+';')
 		self.labels[lindex].clicked.connect(self.mouseSel)	
-		self.labels[lindex].repaint(QRect(x+5, y, w+5, h))		
 
 	def mouseSel(self, label):
 		if self.mode == 0:
@@ -155,10 +158,10 @@ class ImageBrowser(QWidget):
 		elif self.mode == 1 and event.key() == right:
 			self.draw(1, self.j)
 		# Left - Thumbnail
-		elif self.mode == 0 and event.key() == left:	# TODO: Update self.l on move, transition
+		elif self.mode == 0 and event.key() == left:
 			self.draw(0, self.h)
 		# Right - Thumbnail		
-		elif self.mode == 0 and event.key() == right:	# TODO: Update self.l on move, transition
+		elif self.mode == 0 and event.key() == right:
 			self.draw(0, self.j)
 		# Next set Left - Thumbnail		
 		elif self.mode == 0 and event.key() == scrollL:
@@ -178,6 +181,7 @@ class ImageBrowser(QWidget):
 # Create an image browser from the images in the 'data' folder
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
-	imageBrowser = ImageBrowser(os.listdir('data'))
+	width = sys.argv[1] if len(sys.argv) == 2 else 800
+	imageBrowser = ImageBrowser(os.listdir('data'), width)
 	sys.exit(app.exec_())    
 	
