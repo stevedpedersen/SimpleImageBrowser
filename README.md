@@ -6,9 +6,18 @@ SimpleImageBrowser is a simple GUI that displays images in thumbnail and fullscr
 
 # How to run
 
+Default window size (800x600):
 ```sh
 $ python3 project1.py
 ```
+
+Custom window size:
+```sh
+$ python3 project1.py <some custom width size>
+$ python3 project1.py 1600
+```
+Everything will scale according to the width param specified ^^
+
 ### Installation / Dependenices
 
 SimpleImageBrowser requires [PyQt5](https://www.riverbankcomputing.com/software/pyqt/download5) to run.
